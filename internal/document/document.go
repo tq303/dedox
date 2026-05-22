@@ -1,21 +1,29 @@
-// Package file provides text transform utitilies
-package file
+// Package document provides text transform utilities
+package document
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
+
+	"github.com/ledongthuc/pdf"
 )
 
 const (
-	FormatTxt = "txt"
+	FileTypeText = ".txt"
+	FileTypePdf  = ".pdf"
+	// FileTypeWord = ".docx"
 )
 
 func Read(filePath string) ([]string, error) {
 	switch filepath.Ext(filePath) {
-	case ".txt":
+	case FileTypeText:
 		return ReadTextFile(filePath)
+	case FileTypePdf:
+		return ReadPdfFile(filePath)
 	default:
 		return nil, fmt.Errorf("unsupported file type: %s", filepath.Ext(filePath))
 	}
@@ -45,6 +53,25 @@ func ReadTextFile(filePath string) ([]string, error) {
 	}
 
 	return lines, nil
+}
+
+func ReadPdfFile(filePath string) ([]string, error) {
+	f, r, err := pdf.Open(filePath)
+	if err != nil {
+		return nil, err
+	}
+
+	defer f.Close()
+
+	var buf bytes.Buffer
+	b, err := r.GetPlainText()
+	if err != nil {
+		return nil, err
+	}
+
+	buf.ReadFrom(b)
+
+	return strings.Split(buf.String(), "\n"), nil
 }
 
 func Filter(lines []string) {
