@@ -2,8 +2,10 @@
 package document
 
 import (
+	"archive/zip"
 	"bufio"
 	"bytes"
+	"encoding/xml"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -15,7 +17,7 @@ import (
 const (
 	FileTypeText = ".txt"
 	FileTypePdf  = ".pdf"
-	// FileTypeWord = ".docx"
+	FileTypeDocx = ".docx"
 )
 
 func Read(filePath string) ([]string, error) {
@@ -24,6 +26,8 @@ func Read(filePath string) ([]string, error) {
 		return ReadTextFile(filePath)
 	case FileTypePdf:
 		return ReadPdfFile(filePath)
+	case FileTypeDocx:
+		return ReadDocxFile(filePath)
 	default:
 		return nil, fmt.Errorf("unsupported file type: %s", filepath.Ext(filePath))
 	}
@@ -72,6 +76,62 @@ func ReadPdfFile(filePath string) ([]string, error) {
 	buf.ReadFrom(b)
 
 	return strings.Split(buf.String(), "\n"), nil
+}
+
+func ReadDocxFile(filePath string) ([]string, error) {
+	r, err := zip.OpenReader(filePath)
+	if err != nil {
+		return nil, err
+	}
+	defer r.Close()
+
+	for _, f := range r.File {
+		if f.Name == "word/document.xml" {
+			rc, err := f.Open()
+			if err != nil {
+				return nil, err
+			}
+			defer rc.Close()
+
+			var doc struct {
+				Body struct {
+					Paragraphs []struct {
+						Props struct {
+							Style struct {
+								Val string `xml:"val,attr"`
+							} `xml:"pStyle"`
+						} `xml:"pPr"`
+						Runs []struct {
+							Text string `xml:"t"`
+						} `xml:"r"`
+					} `xml:"p"`
+				} `xml:"body"`
+			}
+
+			if err := xml.NewDecoder(rc).Decode(&doc); err != nil {
+				return nil, err
+			}
+
+			var lines []string
+			for _, p := range doc.Body.Paragraphs {
+				var line string
+				for _, r := range p.Runs {
+					line += r.Text
+				}
+				style := p.Props.Style.Val
+				if strings.HasPrefix(style, "Heading") {
+					lines = append(lines, "")
+					lines = append(lines, line)
+					lines = append(lines, "")
+				} else {
+					lines = append(lines, line)
+				}
+			}
+			return lines, nil
+		}
+	}
+
+	return nil, fmt.Errorf("no document.xml found in docx")
 }
 
 func Filter(lines []string) {

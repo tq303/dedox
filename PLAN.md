@@ -51,6 +51,21 @@ ddx file.pdf --prune
 
 ---
 
+## Phase 4 — Output Styles
+
+**Goal:** Control output format via a `--style` / `-s` flag.
+
+- `txt` — plain text (default)
+- `md` — markdown, preserving headings, tables, lists, bold/italic where possible
+
+**Usage:**
+```
+ddx file.docx -s md
+ddx file.docx -s txt
+```
+
+---
+
 ## Principles
 
 - Non-destructive — never modifies the source file

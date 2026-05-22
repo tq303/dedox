@@ -11,7 +11,7 @@ import (
 var rootCmd = &cobra.Command{
 	Use:   "ddx [file]",
 	Short: "CLI file parser",
-	Long:  "Parse and output text from supported file types: .txt, .pdf",
+	Long:  "Parse and output text from supported file types: .txt, .pdf, .docx",
 	Args: func(_ *cobra.Command, args []string) error {
 		if len(args) < 1 {
 			return fmt.Errorf("file path is required, usage: ddx [file]")
