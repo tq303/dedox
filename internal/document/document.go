@@ -4,9 +4,9 @@ package document
 import (
 	"archive/zip"
 	"bufio"
-	"bytes"
 	"encoding/xml"
 	"fmt"
+	"math"
 	"os"
 	"path/filepath"
 	"strings"
@@ -64,18 +64,34 @@ func ReadPdfFile(filePath string) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	defer f.Close()
 
-	var buf bytes.Buffer
-	b, err := r.GetPlainText()
-	if err != nil {
-		return nil, err
+	var lines []string
+	for i := 1; i <= r.NumPage(); i++ {
+		page := r.Page(i)
+		content := page.Content()
+
+		var currentY float64
+		var currentLine string
+
+		for _, text := range content.Text {
+			if currentLine == "" {
+				currentY = text.Y
+			}
+			if math.Abs(text.Y-currentY) > 1 {
+				lines = append(lines, currentLine)
+				currentLine = text.S
+				currentY = text.Y
+			} else {
+				currentLine += text.S
+			}
+		}
+		if currentLine != "" {
+			lines = append(lines, currentLine)
+		}
 	}
 
-	buf.ReadFrom(b)
-
-	return strings.Split(buf.String(), "\n"), nil
+	return lines, nil
 }
 
 func ReadDocxFile(filePath string) ([]string, error) {
@@ -144,6 +160,6 @@ func Filter(lines []string) {
 	}
 
 	for line := range seen {
-		fmt.Printf("%s", line)
+		fmt.Println(line)
 	}
 }
