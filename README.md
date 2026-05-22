@@ -23,10 +23,15 @@ Or with Go:
 go install github.com/tq303/ddx@latest
 ```
 
+**Local development:**
+```bash
+make install
+```
+
 ## Usage
 
 ```
-CLI file parser
+Parse and output text from supported file types: .txt, .pdf, .docx
 
 Usage:
   ddx [file] [flags]
@@ -38,3 +43,9 @@ Flags:
 ---
 
 ## Examples
+
+```bash
+ddx file.txt
+ddx file.pdf
+ddx file.docx
+```
