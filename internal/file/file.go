@@ -5,19 +5,33 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"path/filepath"
 )
 
 const (
 	FormatTxt = "txt"
 )
 
-func Read() []string {
-	fileContents, err := os.Open("./test.txt")
+func Read(filePath string) ([]string, error) {
+	switch filepath.Ext(filePath) {
+	case ".txt":
+		return ReadTextFile(filePath)
+	default:
+		return nil, fmt.Errorf("unsupported file type: %s", filepath.Ext(filePath))
+	}
+}
+
+func ReadTextFile(filePath string) ([]string, error) {
+	fileContents, err := os.Open(filePath)
 	if err != nil {
-		return []string{}
+		return nil, err
 	}
 
-	defer fileContents.Close()
+	defer func() {
+		if cerr := fileContents.Close(); cerr != nil && err == nil {
+			err = cerr
+		}
+	}()
 
 	scanner := bufio.NewScanner(fileContents)
 	lines := []string{}
@@ -27,10 +41,10 @@ func Read() []string {
 	}
 
 	if err := scanner.Err(); err != nil {
-		return []string{}
+		return nil, err
 	}
 
-	return lines
+	return lines, nil
 }
 
 func Filter(lines []string) {

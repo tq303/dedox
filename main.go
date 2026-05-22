@@ -5,6 +5,10 @@ import (
 )
 
 func main() {
-	text := file.Read()
-	file.Filter(text)
+	lines, err := file.Read("./test.txt")
+	if err != nil {
+		return
+	}
+
+	file.Filter(lines)
 }
