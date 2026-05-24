@@ -48,4 +48,11 @@ Flags:
 ddx file.txt
 ddx file.pdf
 ddx file.docx
+
+## TODOs
+
+1. html parser
+2. spreadsheet parser
+3. Find common file types. e.g. html
+
 ```

@@ -15,9 +15,10 @@ import (
 )
 
 const (
-	FileTypeText = ".txt"
-	FileTypePdf  = ".pdf"
-	FileTypeDocx = ".docx"
+	FileTypeText  = ".txt"
+	FileTypePdf   = ".pdf"
+	FileTypeDocx  = ".docx"
+	FileTypeExcel = ".xlsx"
 )
 
 func Read(filePath string) ([]string, error) {
@@ -28,6 +29,8 @@ func Read(filePath string) ([]string, error) {
 		return ReadPdfFile(filePath)
 	case FileTypeDocx:
 		return ReadDocxFile(filePath)
+	case FileTypeExcel:
+		return ReadXlsxFile(filePath)
 	default:
 		return nil, fmt.Errorf("unsupported file type: %s", filepath.Ext(filePath))
 	}
@@ -150,16 +153,101 @@ func ReadDocxFile(filePath string) ([]string, error) {
 	return nil, fmt.Errorf("no document.xml found in docx")
 }
 
+func ReadXlsxFile(filePath string) ([]string, error) {
+	r, err := zip.OpenReader(filePath)
+	if err != nil {
+		return nil, err
+	}
+	defer r.Close()
+
+	// parse shared strings first
+	var sharedStrings []string
+	for _, f := range r.File {
+		if f.Name == "xl/sharedStrings.xml" {
+			rc, err := f.Open()
+			if err != nil {
+				return nil, err
+			}
+			defer rc.Close()
+
+			var ss struct {
+				Items []struct {
+					Text string `xml:"t"`
+				} `xml:"si"`
+			}
+			if err := xml.NewDecoder(rc).Decode(&ss); err != nil {
+				return nil, err
+			}
+			for _, item := range ss.Items {
+				sharedStrings = append(sharedStrings, item.Text)
+			}
+			break
+		}
+	}
+
+	for _, f := range r.File {
+		if f.Name == "xl/worksheets/sheet1.xml" {
+			rc, err := f.Open()
+			if err != nil {
+				return nil, err
+			}
+			defer rc.Close()
+
+			var sheet struct {
+				Rows []struct {
+					Cells []struct {
+						Type  string `xml:"t,attr"`
+						Value string `xml:"v"`
+					} `xml:"c"`
+				} `xml:"sheetData>row"`
+			}
+
+			if err := xml.NewDecoder(rc).Decode(&sheet); err != nil {
+				return nil, err
+			}
+
+			var lines []string
+			for _, row := range sheet.Rows {
+				var cols []string
+				for _, cell := range row.Cells {
+					val := cell.Value
+					if cell.Type == "s" {
+						idx := 0
+						fmt.Sscanf(val, "%d", &idx)
+						if idx < len(sharedStrings) {
+							val = sharedStrings[idx]
+						}
+					}
+					cols = append(cols, val)
+				}
+				lines = append(lines, strings.Join(cols, "\t"))
+			}
+			return lines, nil
+		}
+	}
+
+	return nil, fmt.Errorf("no sheet1.xml found in %s", filePath)
+}
+
+func ReadPowerPointFile(filePath string) ([]string, error) {
+	r, err := zip.OpenReader(filePath)
+	if err != nil {
+		return nil, err
+	}
+	defer r.Close()
+
+	var test = make([]string, 0)
+
+	return test, nil
+}
+
 func Filter(lines []string) {
 	seen := map[string]bool{}
 
 	for _, line := range lines {
 		if !seen[line] {
 			seen[line] = true
+			fmt.Println(line)
 		}
-	}
-
-	for line := range seen {
-		fmt.Println(line)
 	}
 }
