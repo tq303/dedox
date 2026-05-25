@@ -15,10 +15,11 @@ import (
 )
 
 const (
-	FileTypeText  = ".txt"
-	FileTypePdf   = ".pdf"
-	FileTypeDocx  = ".docx"
-	FileTypeExcel = ".xlsx"
+	FileTypeText       = ".txt"
+	FileTypePdf        = ".pdf"
+	FileTypeDocx       = ".docx"
+	FileTypeExcel      = ".xlsx"
+	FileTypePowerPoint = ".pptx"
 )
 
 func Read(filePath string) ([]string, error) {
@@ -31,6 +32,8 @@ func Read(filePath string) ([]string, error) {
 		return ReadDocxFile(filePath)
 	case FileTypeExcel:
 		return ReadXlsxFile(filePath)
+	case FileTypePowerPoint:
+		return ReadPowerPointFile(filePath)
 	default:
 		return nil, fmt.Errorf("unsupported file type: %s", filepath.Ext(filePath))
 	}
@@ -236,9 +239,51 @@ func ReadPowerPointFile(filePath string) ([]string, error) {
 	}
 	defer r.Close()
 
-	var test = make([]string, 0)
+	var lines []string
 
-	return test, nil
+	for _, f := range r.File {
+		if !strings.HasPrefix(f.Name, "ppt/slides/slide") || !strings.HasSuffix(f.Name, ".xml") {
+			continue
+		}
+
+		rc, err := f.Open()
+		if err != nil {
+			return nil, err
+		}
+		defer rc.Close()
+
+		var slide struct {
+			CSld struct {
+				SpTree struct {
+					Shapes []struct {
+						TxBody struct {
+							Paragraphs []struct {
+								Runs []struct {
+									Text string `xml:"t"`
+								} `xml:"r"`
+							} `xml:"p"`
+						} `xml:"txBody"`
+					} `xml:"sp"`
+				} `xml:"spTree"`
+			} `xml:"cSld"`
+		}
+
+		if err := xml.NewDecoder(rc).Decode(&slide); err != nil {
+			return nil, err
+		}
+
+		for _, sp := range slide.CSld.SpTree.Shapes {
+			for _, p := range sp.TxBody.Paragraphs {
+				var line string
+				for _, run := range p.Runs {
+					line += run.Text
+				}
+				lines = append(lines, line)
+			}
+		}
+	}
+
+	return lines, nil
 }
 
 func Filter(lines []string) {

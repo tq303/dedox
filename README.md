@@ -42,17 +42,25 @@ Flags:
 
 ---
 
+## Principles
+
+- Non-destructive — never modifies the source file
+- No runtime dependencies — single compiled binary
+- Composable — works in pipelines like any Unix tool
+- Fast — no LLM, no network, all local processing
+- Simple — no config needed to get started
+
 ## Examples
 
 ```bash
-ddx file.txt
 ddx file.pdf
-ddx file.docx
+```
 
 ## TODOs
 
-1. html parser
-2. spreadsheet parser
-3. Find common file types. e.g. html
+1. New files types
+  - HTML
+  - PPT
+2. Test bigger versions of files
 
 ```
