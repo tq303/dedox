@@ -1,0 +1,17 @@
+{
+  "name": "ddx",
+  "version": "0.1.0",
+  "description": "Parse and output text from supported file types",
+  "main": "index.js",
+  "bin": {
+    "ddx": "index.js"
+  },
+  "scripts": {
+    "postinstall": "node postinstall.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tq303/ddx"
+  },
+  "license": "MIT"
+}
