@@ -8,6 +8,8 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+
+	"github.com/tq303/ddx/internal/parse"
 )
 
 func ReadDocxFile(filePath string) ([]string, error) {
@@ -34,6 +36,9 @@ func ReadDocxFile(filePath string) ([]string, error) {
 							} `xml:"pStyle"`
 						} `xml:"pPr"`
 						Runs []struct {
+							Props struct {
+								Bold *struct{} `xml:"b"`
+							} `xml:"rPr"`
 							Text string `xml:"t"`
 						} `xml:"r"`
 					} `xml:"p"`
@@ -44,22 +49,30 @@ func ReadDocxFile(filePath string) ([]string, error) {
 				return nil, err
 			}
 
-			var lines []string
+			var out strings.Builder
+			out.WriteString("<html><body>")
 			for _, p := range doc.Body.Paragraphs {
-				var line string
-				for _, r := range p.Runs {
-					line += r.Text
+				var text strings.Builder
+				for _, run := range p.Runs {
+					t := run.Text
+					if run.Props.Bold != nil {
+						t = "<strong>" + t + "</strong>"
+					}
+					text.WriteString(t)
 				}
 				style := p.Props.Style.Val
+				level := 0
 				if strings.HasPrefix(style, "Heading") {
-					lines = append(lines, "")
-					lines = append(lines, line)
-					lines = append(lines, "")
+					fmt.Sscanf(style[len("Heading"):], "%d", &level)
+				}
+				if level >= 1 && level <= 6 {
+					fmt.Fprintf(&out, "<h%d>%s</h%d>", level, text.String(), level)
 				} else {
-					lines = append(lines, line)
+					out.WriteString("<p>" + text.String() + "</p>")
 				}
 			}
-			return lines, nil
+			out.WriteString("</body></html>")
+			return parse.HtmlToMarkdown(strings.NewReader(out.String()))
 		}
 	}
 
@@ -119,10 +132,12 @@ func ReadXlsxFile(filePath string) ([]string, error) {
 				return nil, err
 			}
 
-			var lines []string
-			for _, row := range sheet.Rows {
-				var cols []string
-				for _, cell := range row.Cells {
+			// resolve cell values and find max width
+			rows := make([][]string, len(sheet.Rows))
+			maxCols := 0
+			for i, row := range sheet.Rows {
+				cols := make([]string, len(row.Cells))
+				for j, cell := range row.Cells {
 					val := cell.Value
 					if cell.Type == "s" {
 						idx := 0
@@ -131,11 +146,33 @@ func ReadXlsxFile(filePath string) ([]string, error) {
 							val = sharedStrings[idx]
 						}
 					}
-					cols = append(cols, val)
+					cols[j] = val
 				}
-				lines = append(lines, strings.Join(cols, "\t"))
+				rows[i] = cols
+				if len(cols) > maxCols {
+					maxCols = len(cols)
+				}
 			}
-			return lines, nil
+
+			var out strings.Builder
+			out.WriteString("<html><body><table>")
+			for i, cols := range rows {
+				tag := "td"
+				if i == 0 {
+					tag = "th"
+				}
+				out.WriteString("<tr>")
+				for j := 0; j < maxCols; j++ {
+					val := ""
+					if j < len(cols) {
+						val = cols[j]
+					}
+					fmt.Fprintf(&out, "<%s>%s</%s>", tag, val, tag)
+				}
+				out.WriteString("</tr>")
+			}
+			out.WriteString("</table></body></html>")
+			return parse.HtmlToMarkdown(strings.NewReader(out.String()))
 		}
 	}
 
@@ -162,10 +199,10 @@ func ReadPowerPointFile(filePath string) ([]string, error) {
 		return numI < numJ
 	})
 
-	var lines []string
+	var out strings.Builder
+	out.WriteString("<html><body>")
 
 	for _, f := range slideFiles {
-
 		rc, err := f.Open()
 		if err != nil {
 			return nil, err
@@ -194,14 +231,17 @@ func ReadPowerPointFile(filePath string) ([]string, error) {
 
 		for _, sp := range slide.CSld.SpTree.Shapes {
 			for _, p := range sp.TxBody.Paragraphs {
-				var line string
+				var line strings.Builder
 				for _, run := range p.Runs {
-					line += run.Text
+					line.WriteString(run.Text)
 				}
-				lines = append(lines, line)
+				if line.Len() > 0 {
+					out.WriteString("<p>" + line.String() + "</p>")
+				}
 			}
 		}
 	}
 
-	return lines, nil
+	out.WriteString("</body></html>")
+	return parse.HtmlToMarkdown(strings.NewReader(out.String()))
 }
