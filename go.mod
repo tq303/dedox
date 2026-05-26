@@ -1,4 +1,4 @@
-module github.com/tq303/ddx
+module github.com/tq303/dedox
 
 go 1.26.3
 

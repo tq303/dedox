@@ -6,8 +6,8 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	"github.com/tq303/ddx/internal/document"
-	"github.com/tq303/ddx/internal/parse"
+	"github.com/tq303/dedox/internal/document"
+	"github.com/tq303/dedox/internal/parse"
 )
 
 var formats = []string{document.FileTypePdf, document.FileTypeDocx, document.FileTypeExcel, document.FileTypePowerPoint, document.FileTypeHtml, document.FileTypeRtf, document.FileTypeJpg}

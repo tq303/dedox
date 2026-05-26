@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/tq303/ddx/internal/parse"
+	"github.com/tq303/dedox/internal/parse"
 )
 
 func ReadRtfFile(filePath string) ([]string, error) {

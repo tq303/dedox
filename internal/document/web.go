@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/tq303/ddx/internal/parse"
+	"github.com/tq303/dedox/internal/parse"
 )
 
 func contentTypeExt(url string, contentType string) string {

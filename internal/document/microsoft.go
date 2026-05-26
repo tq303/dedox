@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/tq303/ddx/internal/parse"
+	"github.com/tq303/dedox/internal/parse"
 )
 
 func ReadDocxFile(filePath string) ([]string, error) {

@@ -1,5 +1,5 @@
 {
-  "name": "ddx",
+  "name": "dedox",
   "version": "0.1.0",
   "description": "Parse and output text from supported file types",
   "main": "index.js",
