@@ -57,18 +57,20 @@ func sliceHidden(attr []html.Attribute) bool {
 }
 
 func ReadHtmlFile(filePath string) ([]string, error) {
-	fileContents, err := os.Open(filePath)
+	f, err := os.Open(filePath)
 	if err != nil {
 		return nil, err
 	}
-
 	defer func() {
-		if cerr := fileContents.Close(); cerr != nil && err == nil {
+		if cerr := f.Close(); cerr != nil && err == nil {
 			err = cerr
 		}
 	}()
+	return parseHTML(f)
+}
 
-	tokenizer := html.NewTokenizer(fileContents)
+func parseHTML(r io.Reader) ([]string, error) {
+	tokenizer := html.NewTokenizer(r)
 	skipTags := []string{"script", "style", "head", "img", "footer", "nav"}
 
 	var lines []string

@@ -12,6 +12,7 @@ import (
 const (
 	FileTypePdf        = ".pdf"
 	FileTypeHtml       = ".html"
+	FileTypeRtf        = ".rtf"
 	FileTypeDocx       = ".docx"
 	FileTypeExcel      = ".xlsx"
 	FileTypePowerPoint = ".pptx"
@@ -37,6 +38,8 @@ func ReadFile(filePath string) ([]string, error) {
 		return ReadPdfFile(filePath)
 	case FileTypeHtml:
 		return ReadHtmlFile(filePath)
+	case FileTypeRtf:
+		return ReadRtfFile(filePath)
 	case FileTypeDocx:
 		return ReadDocxFile(filePath)
 	case FileTypeExcel:
