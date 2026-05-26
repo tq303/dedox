@@ -4,8 +4,6 @@ package document
 import (
 	"bufio"
 	"fmt"
-	"io"
-	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -13,40 +11,21 @@ import (
 
 const (
 	FileTypePdf        = ".pdf"
+	FileTypeHtml       = ".html"
 	FileTypeDocx       = ".docx"
 	FileTypeExcel      = ".xlsx"
 	FileTypePowerPoint = ".pptx"
 )
 
-func ReadHttpFile(url string) ([]string, error) {
-	resp, err := http.Get(url)
-
-	if err != nil {
-		return nil, err
-	}
-
-	defer resp.Body.Close()
-
-	ext := filepath.Ext(url)
-
-	f, err := os.CreateTemp("/tmp", "ddx-http.*"+ext)
-
-	if err != nil {
-		return nil, err
-	}
-
-	defer f.Close()
-
-	if _, err := io.Copy(f, resp.Body); err != nil {
-		return nil, err
-	}
-
-	return ReadFile(f.Name())
-}
-
 func Read(filePath string) ([]string, error) {
 	if strings.HasPrefix(filePath, "http") {
-		return ReadHttpFile(filePath)
+		tmpFilePath, err := ReadHttpFile(filePath)
+
+		if err != nil {
+			return nil, err
+		}
+
+		return ReadFile(tmpFilePath)
 	}
 
 	return ReadFile(filePath)
@@ -56,6 +35,8 @@ func ReadFile(filePath string) ([]string, error) {
 	switch filepath.Ext(filePath) {
 	case FileTypePdf:
 		return ReadPdfFile(filePath)
+	case FileTypeHtml:
+		return ReadHtmlFile(filePath)
 	case FileTypeDocx:
 		return ReadDocxFile(filePath)
 	case FileTypeExcel:
