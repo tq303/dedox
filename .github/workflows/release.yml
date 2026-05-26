@@ -50,6 +50,9 @@ jobs:
     name: Publish to npm
     runs-on: ubuntu-latest
     needs: build
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - uses: actions/checkout@v4
 
@@ -63,7 +66,7 @@ jobs:
         working-directory: npm
 
       - name: Publish
-        run: npm publish --access=public
+        run: npm publish --access=public --provenance
         working-directory: npm
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
