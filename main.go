@@ -10,7 +10,9 @@ import (
 	"github.com/tq303/ddx/internal/parse"
 )
 
-var formats = []string{document.FileTypePdf, document.FileTypeDocx, document.FileTypeExcel, document.FileTypePowerPoint}
+var formats = []string{document.FileTypePdf, document.FileTypeDocx, document.FileTypeExcel, document.FileTypePowerPoint, document.FileTypeHtml, document.FileTypeRtf, document.FileTypeJpg}
+
+var filterNames []string
 
 var rootCmd = &cobra.Command{
 	Use:   "ddx [file]",
@@ -20,7 +22,6 @@ var rootCmd = &cobra.Command{
 		if len(args) < 1 {
 			return fmt.Errorf("file path is required, usage: ddx [file]")
 		}
-
 		return nil
 	},
 	Run: func(_ *cobra.Command, args []string) {
@@ -29,11 +30,31 @@ var rootCmd = &cobra.Command{
 			log.Fatalln(err)
 		}
 
-		parse.Filter(lines)
+		for _, name := range filterNames {
+			fn, ok := parse.Filters[name]
+			if !ok {
+				log.Fatalf("unknown filter: %s (available: %s)", name, strings.Join(availableFilters(), ", "))
+			}
+			lines = fn(lines)
+		}
+
+		for _, line := range lines {
+			fmt.Println(line)
+		}
 	},
 }
 
+func availableFilters() []string {
+	names := make([]string, 0, len(parse.Filters))
+	for k := range parse.Filters {
+		names = append(names, k)
+	}
+	return names
+}
+
 func main() {
+	rootCmd.Flags().StringArrayVar(&filterNames, "filter", nil, "apply a named filter (repeatable); available: pii, urls, ip, boilerplate, normalize, uniq")
+
 	err := rootCmd.Execute()
 	if err != nil {
 		fmt.Println(err)

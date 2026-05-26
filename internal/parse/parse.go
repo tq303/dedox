@@ -1,7 +1,6 @@
 package parse
 
 import (
-	"fmt"
 	"io"
 	"slices"
 	"strings"
@@ -184,13 +183,3 @@ func HtmlToMarkdown(r io.Reader) ([]string, error) {
 	}
 }
 
-func Filter(lines []string) {
-	seen := map[string]bool{}
-
-	for _, line := range lines {
-		if !seen[line] {
-			seen[line] = true
-			fmt.Println(line)
-		}
-	}
-}

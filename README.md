@@ -47,7 +47,7 @@ make install
 ddx [file]
 ```
 
-Supported file types: `.txt`, `.pdf`, `.docx`, `.xlsx`, `.pptx`
+Supported file types: `.pdf`, `.docx`, `.xlsx`, `.pptx`, `.html`, `.rtf`, `.jpg`, `.txt`
 
 ### Examples
 
@@ -55,6 +55,25 @@ Supported file types: `.txt`, `.pdf`, `.docx`, `.xlsx`, `.pptx`
 ddx report.pdf
 ddx notes.docx | grep "keyword"
 ddx data.xlsx > output.txt
+```
+
+### Filters
+
+Apply one or more named filters with `--filter` (repeatable, applied in order):
+
+| Filter | What it does |
+|---|---|
+| `pii` | Redacts emails, phone numbers, SSNs, credit card numbers |
+| `urls` | Redacts URLs |
+| `ip` | Redacts IPv4 addresses |
+| `boilerplate` | Strips page numbers, copyright lines, "Confidential" stamps |
+| `normalize` | Collapses multiple spaces and consecutive blank lines |
+| `uniq` | Removes duplicate lines |
+
+```bash
+ddx report.pdf --filter boilerplate --filter normalize
+ddx contract.docx --filter pii --filter urls > redacted.txt
+ddx logs.txt --filter ip | grep "error"
 ```
 
 ---
