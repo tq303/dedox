@@ -24,6 +24,8 @@ func HtmlToMarkdown(r io.Reader) ([]string, error) {
 	hiddenDepth := 0
 	headingLevel := 0
 	inListItem := false
+	listDepth := 0
+	listItemDepth := 0
 	inBold := false
 	inItalic := false
 	linkHref := ""
@@ -67,8 +69,11 @@ func HtmlToMarkdown(r io.Reader) ([]string, error) {
 				headingLevel = 5
 			case "h6":
 				headingLevel = 6
+			case "ul", "ol":
+				listDepth++
 			case "li":
 				inListItem = true
+				listItemDepth = listDepth - 1
 			case "strong", "b":
 				inBold = true
 			case "em", "i":
@@ -110,6 +115,10 @@ func HtmlToMarkdown(r io.Reader) ([]string, error) {
 			case "h1", "h2", "h3", "h4", "h5", "h6":
 				headingLevel = 0
 				lines = append(lines, "")
+			case "ul", "ol":
+				if listDepth > 0 {
+					listDepth--
+				}
 			case "li":
 				inListItem = false
 			case "strong", "b":
@@ -167,7 +176,7 @@ func HtmlToMarkdown(r io.Reader) ([]string, error) {
 			if headingLevel > 0 {
 				text = strings.Repeat("#", headingLevel) + " " + text
 			} else if inListItem {
-				text = "- " + text
+				text = strings.Repeat("  ", listItemDepth) + "- " + text
 			}
 
 			lines = append(lines, text)

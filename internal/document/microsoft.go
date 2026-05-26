@@ -255,8 +255,18 @@ func ReadPowerPointFile(filePath string) ([]string, error) {
 			CSld struct {
 				SpTree struct {
 					Shapes []struct {
+						NvSpPr struct {
+							NvPr struct {
+								Ph struct {
+									Type string `xml:"type,attr"`
+								} `xml:"ph"`
+							} `xml:"nvPr"`
+						} `xml:"nvSpPr"`
 						TxBody struct {
 							Paragraphs []struct {
+								Props struct {
+									Level int `xml:"lvl,attr"`
+								} `xml:"pPr"`
 								Runs []struct {
 									Text string `xml:"t"`
 								} `xml:"r"`
@@ -272,13 +282,49 @@ func ReadPowerPointFile(filePath string) ([]string, error) {
 		}
 
 		for _, sp := range slide.CSld.SpTree.Shapes {
-			for _, p := range sp.TxBody.Paragraphs {
-				var line strings.Builder
-				for _, run := range p.Runs {
-					line.WriteString(run.Text)
+			phType := sp.NvSpPr.NvPr.Ph.Type
+			isTitle := phType == "title" || phType == "ctrTitle"
+			isSubtitle := phType == "subTitle"
+
+			if isTitle || isSubtitle {
+				tag := "h2"
+				if isSubtitle {
+					tag = "h3"
 				}
-				if line.Len() > 0 {
-					out.WriteString("<p>" + line.String() + "</p>")
+				for _, p := range sp.TxBody.Paragraphs {
+					var line strings.Builder
+					for _, run := range p.Runs {
+						line.WriteString(run.Text)
+					}
+					if line.Len() > 0 {
+						fmt.Fprintf(&out, "<%s>%s</%s>", tag, line.String(), tag)
+					}
+				}
+			} else {
+				// body content: nested list based on paragraph level
+				depth := -1
+				for _, p := range sp.TxBody.Paragraphs {
+					var line strings.Builder
+					for _, run := range p.Runs {
+						line.WriteString(run.Text)
+					}
+					if line.Len() == 0 {
+						continue
+					}
+					lvl := p.Props.Level
+					for depth < lvl {
+						out.WriteString("<ul>")
+						depth++
+					}
+					for depth > lvl {
+						out.WriteString("</ul>")
+						depth--
+					}
+					out.WriteString("<li>" + line.String() + "</li>")
+				}
+				for depth >= 0 {
+					out.WriteString("</ul>")
+					depth--
 				}
 			}
 		}
