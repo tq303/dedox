@@ -9,6 +9,7 @@ import (
 )
 
 const (
+	FileTypeJpg        = ".jpg"
 	FileTypePdf        = ".pdf"
 	FileTypeRtf        = ".rtf"
 	FileTypeHtml       = ".html"
@@ -33,6 +34,8 @@ func Read(filePath string) ([]string, error) {
 
 func ReadFile(filePath string) ([]string, error) {
 	switch filepath.Ext(filePath) {
+	case FileTypeJpg:
+		return ReadJpegBase64(filePath)
 	case FileTypePdf:
 		return ReadPdfFile(filePath)
 	case FileTypeHtml:

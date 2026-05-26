@@ -38,6 +38,9 @@ func ReadDocxFile(filePath string) ([]string, error) {
 						Runs []struct {
 							Props struct {
 								Bold *struct{} `xml:"b"`
+								Sz   struct {
+									Val int `xml:"val,attr"`
+								} `xml:"sz"`
 							} `xml:"rPr"`
 							Text string `xml:"t"`
 						} `xml:"r"`
@@ -49,21 +52,60 @@ func ReadDocxFile(filePath string) ([]string, error) {
 				return nil, err
 			}
 
+			// find base font size: most common sz across all runs
+			szCount := map[int]int{}
+			for _, p := range doc.Body.Paragraphs {
+				for _, run := range p.Runs {
+					if run.Props.Sz.Val > 0 {
+						szCount[run.Props.Sz.Val]++
+					}
+				}
+			}
+			baseSz := 28 // fallback: 14pt
+			maxCount := 0
+			for sz, count := range szCount {
+				if count > maxCount {
+					maxCount = count
+					baseSz = sz
+				}
+			}
+
+			// rank distinct sizes above base: largest = h1, next = h2, etc.
+			var headingSizes []int
+			for sz := range szCount {
+				if sz > baseSz {
+					headingSizes = append(headingSizes, sz)
+				}
+			}
+			sort.Sort(sort.Reverse(sort.IntSlice(headingSizes)))
+			szToLevel := map[int]int{}
+			for i, sz := range headingSizes {
+				if i < 6 {
+					szToLevel[sz] = i + 1
+				}
+			}
+
 			var out strings.Builder
 			out.WriteString("<html><body>")
 			for _, p := range doc.Body.Paragraphs {
 				var text strings.Builder
+				maxSz := 0
 				for _, run := range p.Runs {
 					t := run.Text
 					if run.Props.Bold != nil {
 						t = "<strong>" + t + "</strong>"
 					}
 					text.WriteString(t)
+					if run.Props.Sz.Val > maxSz {
+						maxSz = run.Props.Sz.Val
+					}
 				}
 				style := p.Props.Style.Val
 				level := 0
 				if strings.HasPrefix(style, "Heading") {
 					fmt.Sscanf(style[len("Heading"):], "%d", &level)
+				} else if l, ok := szToLevel[maxSz]; ok {
+					level = l
 				}
 				if level >= 1 && level <= 6 {
 					fmt.Fprintf(&out, "<h%d>%s</h%d>", level, text.String(), level)
