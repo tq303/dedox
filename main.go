@@ -9,7 +9,7 @@ import (
 	"github.com/tq303/ddx/internal/document"
 )
 
-var formats = []string{document.FileTypeText, document.FileTypePdf, document.FileTypeDocx, document.FileTypeExcel, document.FileTypePowerPoint}
+var formats = []string{document.FileTypePdf, document.FileTypeDocx, document.FileTypeExcel, document.FileTypePowerPoint}
 
 var rootCmd = &cobra.Command{
 	Use:   "ddx [file]",
