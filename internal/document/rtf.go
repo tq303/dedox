@@ -33,6 +33,10 @@ func rtfToHTML(data []byte) string {
 
 	var para strings.Builder
 
+	// Table state
+	inTable := false
+	var tableRow []string
+
 	emit := func() {
 		text := strings.TrimSpace(para.String())
 		para.Reset()
@@ -159,8 +163,30 @@ func rtfToHTML(data []byte) string {
 			}
 
 			switch word {
+			case "trowd":
+				inTable = true
+				tableRow = tableRow[:0]
+			case "intbl":
+				inTable = true
+			case "cell":
+				if inTable {
+					tableRow = append(tableRow, strings.TrimSpace(para.String()))
+					para.Reset()
+				}
+			case "row":
+				if inTable {
+					out.WriteString("<tr>")
+					for _, cell := range tableRow {
+						out.WriteString("<td>" + cell + "</td>")
+					}
+					out.WriteString("</tr>")
+					tableRow = tableRow[:0]
+					inTable = false
+				}
 			case "pard":
-				emit()
+				if !inTable {
+					emit()
+				}
 				stack[len(stack)-1].bold = false
 			case "s":
 				if numStr != "" {
@@ -176,7 +202,9 @@ func rtfToHTML(data []byte) string {
 					stack[len(stack)-1].bold = true
 				}
 			case "par":
-				emit()
+				if !inTable {
+					emit()
+				}
 			case "u":
 				if numStr != "" {
 					code, _ := strconv.ParseInt(numStr, 10, 32)

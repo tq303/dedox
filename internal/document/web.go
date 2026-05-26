@@ -82,6 +82,13 @@ func parseHTML(r io.Reader) ([]string, error) {
 	inItalic := false
 	linkHref := ""
 
+	// Table state
+	inCell := false
+	isHeaderRow := false
+	headerRowDone := false
+	var currentRow []string
+	var currentCellBuf strings.Builder
+
 	for {
 		tt := tokenizer.Next()
 		switch tt {
@@ -128,6 +135,17 @@ func parseHTML(r io.Reader) ([]string, error) {
 				}
 			case "p":
 				lines = append(lines, "")
+			case "table":
+				headerRowDone = false
+			case "tr":
+				currentRow = currentRow[:0]
+				isHeaderRow = false
+			case "th", "td":
+				inCell = true
+				if tag == "th" {
+					isHeaderRow = true
+				}
+				currentCellBuf.Reset()
 			}
 
 		case html.EndTagToken:
@@ -156,6 +174,21 @@ func parseHTML(r io.Reader) ([]string, error) {
 				linkHref = ""
 			case "p":
 				lines = append(lines, "")
+			case "th", "td":
+				currentRow = append(currentRow, strings.TrimSpace(currentCellBuf.String()))
+				inCell = false
+			case "tr":
+				if len(currentRow) > 0 {
+					lines = append(lines, "| "+strings.Join(currentRow, " | ")+" |")
+					if isHeaderRow && !headerRowDone {
+						sep := make([]string, len(currentRow))
+						for i := range sep {
+							sep[i] = "---"
+						}
+						lines = append(lines, "| "+strings.Join(sep, " | ")+" |")
+						headerRowDone = true
+					}
+				}
 			}
 
 		case html.TextToken:
@@ -176,6 +209,15 @@ func parseHTML(r io.Reader) ([]string, error) {
 			if linkHref != "" {
 				text = "[" + text + "](" + linkHref + ")"
 			}
+
+			if inCell {
+				if currentCellBuf.Len() > 0 {
+					currentCellBuf.WriteString(" ")
+				}
+				currentCellBuf.WriteString(text)
+				continue
+			}
+
 			if headingLevel > 0 {
 				text = strings.Repeat("#", headingLevel) + " " + text
 			} else if inListItem {
