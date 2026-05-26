@@ -5,6 +5,8 @@ import (
 	"archive/zip"
 	"encoding/xml"
 	"fmt"
+	"sort"
+	"strconv"
 	"strings"
 )
 
@@ -147,12 +149,22 @@ func ReadPowerPointFile(filePath string) ([]string, error) {
 	}
 	defer r.Close()
 
+	var slideFiles []*zip.File
+	for _, f := range r.File {
+		if strings.HasPrefix(f.Name, "ppt/slides/slide") && strings.HasSuffix(f.Name, ".xml") {
+			slideFiles = append(slideFiles, f)
+		}
+	}
+
+	sort.Slice(slideFiles, func(i, j int) bool {
+		numI, _ := strconv.Atoi(strings.TrimSuffix(strings.TrimPrefix(slideFiles[i].Name, "ppt/slides/slide"), ".xml"))
+		numJ, _ := strconv.Atoi(strings.TrimSuffix(strings.TrimPrefix(slideFiles[j].Name, "ppt/slides/slide"), ".xml"))
+		return numI < numJ
+	})
+
 	var lines []string
 
-	for _, f := range r.File {
-		if !strings.HasPrefix(f.Name, "ppt/slides/slide") || !strings.HasSuffix(f.Name, ".xml") {
-			continue
-		}
+	for _, f := range slideFiles {
 
 		rc, err := f.Open()
 		if err != nil {
