@@ -22,6 +22,7 @@ var rootCmd = &cobra.Command{
 		if len(args) < 1 {
 			return fmt.Errorf("file path is required, usage: ddx [file]")
 		}
+
 		return nil
 	},
 	Run: func(_ *cobra.Command, args []string) {
@@ -31,11 +32,12 @@ var rootCmd = &cobra.Command{
 		}
 
 		for _, name := range filterNames {
-			fn, ok := parse.Filters[name]
-			if !ok {
+			filterFn, err := parse.Filters[name]
+			if !err {
 				log.Fatalf("unknown filter: %s (available: %s)", name, strings.Join(availableFilters(), ", "))
 			}
-			lines = fn(lines)
+
+			lines = filterFn(lines)
 		}
 
 		for _, line := range lines {
@@ -46,9 +48,11 @@ var rootCmd = &cobra.Command{
 
 func availableFilters() []string {
 	names := make([]string, 0, len(parse.Filters))
-	for k := range parse.Filters {
-		names = append(names, k)
+
+	for key := range parse.Filters {
+		names = append(names, key)
 	}
+
 	return names
 }
 
@@ -56,6 +60,7 @@ func main() {
 	rootCmd.Flags().StringArrayVar(&filterNames, "filter", nil, "apply a named filter (repeatable); available: pii, urls, ip, boilerplate, normalize, uniq")
 
 	err := rootCmd.Execute()
+
 	if err != nil {
 		fmt.Println(err)
 	}

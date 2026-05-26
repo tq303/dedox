@@ -21,7 +21,6 @@ const (
 func Read(filePath string) ([]string, error) {
 	if strings.HasPrefix(filePath, "http") {
 		tmpFilePath, err := ReadHttpFile(filePath)
-
 		if err != nil {
 			return nil, err
 		}
@@ -54,18 +53,18 @@ func ReadFile(filePath string) ([]string, error) {
 }
 
 func ReadTextFile(filePath string) ([]string, error) {
-	fileContents, err := os.Open(filePath)
+	file, err := os.Open(filePath)
 	if err != nil {
 		return nil, err
 	}
 
 	defer func() {
-		if cerr := fileContents.Close(); cerr != nil && err == nil {
+		if cerr := file.Close(); cerr != nil && err == nil {
 			err = cerr
 		}
 	}()
 
-	scanner := bufio.NewScanner(fileContents)
+	scanner := bufio.NewScanner(file)
 	lines := []string{}
 
 	for scanner.Scan() {

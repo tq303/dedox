@@ -150,7 +150,7 @@ func ReadPdfFile(filePath string) ([]string, error) {
 			out = append(out, "")
 		}
 		text := strings.TrimSpace(p.text)
-		if level, ok := szToLevel[math.Round(p.size)]; ok {
+		if level, err := szToLevel[math.Round(p.size)]; err {
 			out = append(out, strings.Repeat("#", level)+" "+text)
 		} else {
 			out = append(out, text)

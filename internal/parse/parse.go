@@ -182,4 +182,3 @@ func HtmlToMarkdown(r io.Reader) ([]string, error) {
 		}
 	}
 }
-

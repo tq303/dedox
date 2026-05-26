@@ -19,12 +19,14 @@ var Filters = map[string]FilterFunc{
 func uniq(lines []string) []string {
 	seen := map[string]bool{}
 	out := lines[:0:len(lines)]
+
 	for _, line := range lines {
 		if !seen[line] {
 			seen[line] = true
 			out = append(out, line)
 		}
 	}
+
 	return out
 }
 
@@ -49,6 +51,7 @@ var boilerplatePatterns = []*regexp.Regexp{
 
 func redactPII(lines []string) []string {
 	out := make([]string, len(lines))
+
 	for i, line := range lines {
 		line = reEmail.ReplaceAllString(line, "[EMAIL]")
 		line = rePhone.ReplaceAllString(line, "[PHONE]")
@@ -56,27 +59,33 @@ func redactPII(lines []string) []string {
 		line = reCCNum.ReplaceAllString(line, "[CC]")
 		out[i] = line
 	}
+
 	return out
 }
 
 func redactURLs(lines []string) []string {
 	out := make([]string, len(lines))
+
 	for i, line := range lines {
 		out[i] = reURL.ReplaceAllString(line, "[URL]")
 	}
+
 	return out
 }
 
 func redactIPs(lines []string) []string {
 	out := make([]string, len(lines))
+
 	for i, line := range lines {
 		out[i] = reIP.ReplaceAllString(line, "[IP]")
 	}
+
 	return out
 }
 
 func stripBoilerplate(lines []string) []string {
 	out := lines[:0:len(lines)]
+
 	for _, line := range lines {
 		match := false
 		for _, re := range boilerplatePatterns {
@@ -89,12 +98,14 @@ func stripBoilerplate(lines []string) []string {
 			out = append(out, line)
 		}
 	}
+
 	return out
 }
 
 func normalizeWhitespace(lines []string) []string {
 	out := make([]string, 0, len(lines))
 	blankRun := 0
+
 	for _, line := range lines {
 		line = strings.TrimRight(reMultiSpace.ReplaceAllString(line, " "), " \t")
 		if line == "" {
@@ -107,5 +118,6 @@ func normalizeWhitespace(lines []string) []string {
 			out = append(out, line)
 		}
 	}
+
 	return out
 }

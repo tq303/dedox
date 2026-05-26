@@ -12,13 +12,11 @@ var jpgEnd = []byte{0xFF, 0xD9}
 
 func ReadJpegBase64(filePath string) ([]string, error) {
 	pdf, err := os.ReadFile(filePath)
-
 	if err != nil {
 		return nil, err
 	}
 
 	images := []string{}
-
 	offset := 0
 
 	for {

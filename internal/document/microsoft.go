@@ -104,7 +104,7 @@ func ReadDocxFile(filePath string) ([]string, error) {
 				level := 0
 				if strings.HasPrefix(style, "Heading") {
 					fmt.Sscanf(style[len("Heading"):], "%d", &level)
-				} else if l, ok := szToLevel[maxSz]; ok {
+				} else if l, err := szToLevel[maxSz]; err {
 					level = l
 				}
 				if level >= 1 && level <= 6 {
