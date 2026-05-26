@@ -50,7 +50,6 @@ jobs:
     name: Publish to npm
     runs-on: ubuntu-latest
     needs: build
-    if: false # remove when NPM_TOKEN secret is added
     steps:
       - uses: actions/checkout@v4
 
