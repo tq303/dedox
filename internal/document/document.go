@@ -3,7 +3,6 @@ package document
 
 import (
 	"bufio"
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -11,8 +10,8 @@ import (
 
 const (
 	FileTypePdf        = ".pdf"
-	FileTypeHtml       = ".html"
 	FileTypeRtf        = ".rtf"
+	FileTypeHtml       = ".html"
 	FileTypeDocx       = ".docx"
 	FileTypeExcel      = ".xlsx"
 	FileTypePowerPoint = ".pptx"
@@ -75,15 +74,4 @@ func ReadTextFile(filePath string) ([]string, error) {
 	}
 
 	return lines, nil
-}
-
-func Filter(lines []string) {
-	seen := map[string]bool{}
-
-	for _, line := range lines {
-		if !seen[line] {
-			seen[line] = true
-			fmt.Println(line)
-		}
-	}
 }

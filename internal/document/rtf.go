@@ -5,14 +5,18 @@ import (
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/tq303/ddx/internal/parse"
 )
 
 func ReadRtfFile(filePath string) ([]string, error) {
 	data, err := os.ReadFile(filePath)
+
 	if err != nil {
 		return nil, err
 	}
-	return parseHTML(strings.NewReader(rtfToHTML(data)))
+
+	return parse.HtmlToMarkdown(strings.NewReader(rtfToHTML(data)))
 }
 
 func rtfToHTML(data []byte) string {
