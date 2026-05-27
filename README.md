@@ -25,8 +25,8 @@ curl -L https://github.com/tq303/dedox/releases/latest/download/ddx-linux-amd64 
 
 **npm / yarn**
 ```bash
-npm install ddx
-yarn add ddx
+npm install @tq303/dedox
+yarn add @tq303/dedox
 ```
 
 **Go**
@@ -74,6 +74,15 @@ Apply one or more named filters with `--filter` (repeatable, applied in order):
 ddx report.pdf --filter boilerplate --filter normalize
 ddx contract.docx --filter pii --filter urls > redacted.txt
 ddx logs.txt --filter ip | grep "error"
+```
+
+### Node.js
+
+```js
+const ddx = require('@tq303/dedox')
+
+const text = ddx('report.pdf')
+const redacted = ddx('contract.docx', { filters: ['pii', 'normalize'] })
 ```
 
 ---
