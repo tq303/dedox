@@ -1,4 +1,4 @@
-.PHONY: install build clean
+.PHONY: install build clean release
 
 install:
 	go install .
@@ -8,3 +8,6 @@ build:
 
 clean:
 	rm -f ddx
+
+release:
+	./scripts/release.sh
