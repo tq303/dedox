@@ -14,11 +14,37 @@ func sliceHidden(attr []html.Attribute) bool {
 	})
 }
 
+func parseMeta(tok html.Token) (name, property, content string) {
+	for _, attr := range tok.Attr {
+		switch attr.Key {
+		case "name":
+			name = strings.ToLower(attr.Val)
+		case "property":
+			property = strings.ToLower(attr.Val)
+		case "content":
+			content = attr.Val
+		}
+	}
+	return
+}
+
+func metaFallback(metaTitle, metaDescription string) []string {
+	var lines []string
+	if metaTitle != "" {
+		lines = append(lines, "# "+metaTitle, "")
+	}
+	for _, l := range strings.Split(metaDescription, "\n") {
+		lines = append(lines, l)
+	}
+	return lines
+}
+
 func HtmlToMarkdown(r io.Reader) ([]string, error) {
 	tokenizer := html.NewTokenizer(r)
 	skipTags := []string{"script", "style", "head", "img", "footer", "nav"}
 
 	var lines []string
+	var metaTitle, metaDescription string
 	skipTag := false
 	hiddenDepth := 0
 	headingLevel := 0
@@ -40,17 +66,53 @@ func HtmlToMarkdown(r io.Reader) ([]string, error) {
 		tt := tokenizer.Next()
 		switch tt {
 		case html.ErrorToken:
+			if metaDescription != "" {
+				nonEmpty := 0
+				for _, l := range lines {
+					if strings.TrimSpace(l) != "" {
+						nonEmpty++
+					}
+				}
+				if nonEmpty < 5 {
+					return metaFallback(metaTitle, metaDescription), nil
+				}
+			}
 			return lines, nil
 
+		case html.SelfClosingTagToken:
+			token := tokenizer.Token()
+			if token.Data == "meta" {
+				name, property, content := parseMeta(token)
+				if content != "" {
+					if (name == "description" || property == "og:description") && metaDescription == "" {
+						metaDescription = content
+					} else if (name == "title" || property == "og:title") && metaTitle == "" {
+						metaTitle = content
+					}
+				}
+			}
+
 		case html.StartTagToken:
-			tok := tokenizer.Token()
-			tag := tok.Data
+			token := tokenizer.Token()
+			tag := token.Data
+
+			if tag == "meta" {
+				name, property, content := parseMeta(token)
+				if content != "" {
+					if (name == "description" || property == "og:description") && metaDescription == "" {
+						metaDescription = content
+					} else if (name == "title" || property == "og:title") && metaTitle == "" {
+						metaTitle = content
+					}
+				}
+				continue
+			}
 
 			if slices.Contains(skipTags, tag) {
 				skipTag = true
 				continue
 			}
-			if sliceHidden(tok.Attr) {
+			if sliceHidden(token.Attr) {
 				hiddenDepth++
 				continue
 			}
@@ -78,7 +140,7 @@ func HtmlToMarkdown(r io.Reader) ([]string, error) {
 			case "em", "i":
 				inItalic = true
 			case "a":
-				for _, attr := range tok.Attr {
+				for _, attr := range token.Attr {
 					if attr.Key == "href" {
 						linkHref = attr.Val
 					}
