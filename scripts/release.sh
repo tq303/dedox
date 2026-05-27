@@ -12,3 +12,8 @@ git push origin $NEXT
 cd npm
 npm version ${NEXT#v} --no-git-tag-version
 npm publish --access=public
+cd ..
+
+git add npm/package.json
+git commit -m "chore: release $NEXT"
+git push
