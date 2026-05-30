@@ -8,19 +8,14 @@ CLI tool that extracts text from documents and outputs it to stdout.
 
 ## Install
 
-**macOS (Apple Silicon)**
+**macOS / Linux**
 ```bash
-curl -L https://github.com/tq303/dedox/releases/latest/download/ddx-darwin-arm64 -o /usr/local/bin/ddx && chmod +x /usr/local/bin/ddx
+curl -sL https://raw.githubusercontent.com/tq303/dedox/main/scripts/install.sh | sh
 ```
 
-**macOS (Intel)**
-```bash
-curl -L https://github.com/tq303/dedox/releases/latest/download/ddx-darwin-amd64 -o /usr/local/bin/ddx && chmod +x /usr/local/bin/ddx
-```
-
-**Linux**
-```bash
-curl -L https://github.com/tq303/dedox/releases/latest/download/ddx-linux-amd64 -o /usr/local/bin/ddx && chmod +x /usr/local/bin/ddx
+**Windows** (run as administrator)
+```bat
+curl -sL https://raw.githubusercontent.com/tq303/dedox/main/scripts/install.bat -o install.bat && install.bat
 ```
 
 **npm / yarn**
