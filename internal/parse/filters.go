@@ -107,7 +107,7 @@ func normalizeWhitespace(lines []string) []string {
 	blankRun := 0
 
 	for _, line := range lines {
-		line = strings.TrimRight(reMultiSpace.ReplaceAllString(line, " "), " \t")
+		line = strings.TrimSpace(reMultiSpace.ReplaceAllString(line, " "))
 		if line == "" {
 			blankRun++
 			if blankRun <= 1 {
