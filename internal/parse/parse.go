@@ -10,7 +10,7 @@ import (
 
 func sliceHidden(attr []html.Attribute) bool {
 	return slices.ContainsFunc(attr, func(a html.Attribute) bool {
-		return a.Key == "hidden" || (a.Key == "aria-hidden" && a.Val == "true")
+		return a.Key == "hidden"
 	})
 }
 
@@ -112,7 +112,7 @@ func HtmlToMarkdown(r io.Reader) ([]string, error) {
 				skipTag = true
 				continue
 			}
-			if sliceHidden(token.Attr) {
+			if hiddenDepth > 0 || sliceHidden(token.Attr) {
 				hiddenDepth++
 				continue
 			}

@@ -34,6 +34,20 @@ go install github.com/tq303/dedox@latest
 make install
 ```
 
+**Link to a Node.js project (no publish needed)**
+
+Build the binary into the npm package, register it globally, then link from your project:
+```bash
+# in ddx/
+make dev                        # builds into npm/bin/ddx
+cd npm && yarn link             # registers @tq303/dedox globally
+
+# in your project/
+yarn link "@tq303/dedox"        # symlinks node_modules to local ddx/npm/
+```
+
+After any Go change, just `make dev` — the linked project picks it up immediately.
+
 ---
 
 ## Usage

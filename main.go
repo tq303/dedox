@@ -57,7 +57,7 @@ func availableFilters() []string {
 }
 
 func main() {
-	rootCmd.Flags().StringArrayVar(&filterNames, "filter", nil, "apply a named filter (repeatable); available: pii, urls, ip, boilerplate, normalize, uniq")
+	rootCmd.Flags().StringArrayVarP(&filterNames, "filter", "f", nil, "apply a named filter (repeatable); available: pii, urls, ip, boilerplate, normalize, uniq")
 
 	err := rootCmd.Execute()
 
