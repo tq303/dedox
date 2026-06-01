@@ -76,11 +76,11 @@ Apply one or more named filters with `--filter` (repeatable, applied in order):
 | `urls` | Redacts URLs |
 | `ip` | Redacts IPv4 addresses |
 | `boilerplate` | Strips page numbers, copyright lines, "Confidential" stamps |
-| `normalize` | Collapses multiple spaces and consecutive blank lines |
+| `norm` | Collapses multiple spaces and consecutive blank lines |
 | `uniq` | Removes duplicate lines |
 
 ```bash
-ddx report.pdf --filter boilerplate --filter normalize
+ddx report.pdf --filter boilerplate --filter norm
 ddx contract.docx --filter pii --filter urls > redacted.txt
 ddx logs.txt --filter ip | grep "error"
 ```
@@ -91,7 +91,7 @@ ddx logs.txt --filter ip | grep "error"
 const ddx = require('@tq303/dedox')
 
 const text = ddx('report.pdf')
-const redacted = ddx('contract.docx', { filters: ['pii', 'normalize'] })
+const redacted = ddx('contract.docx', { filters: ['pii', 'norm'] })
 ```
 
 ---

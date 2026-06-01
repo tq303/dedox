@@ -12,7 +12,7 @@ var Filters = map[string]FilterFunc{
 	"urls":        redactURLs,
 	"ip":          redactIPs,
 	"boilerplate": stripBoilerplate,
-	"normalize":   normalizeWhitespace,
+	"norm":        normalizeWhitespace,
 	"uniq":        uniq,
 }
 
