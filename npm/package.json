@@ -1,6 +1,6 @@
 {
   "name": "@tq303/dedox",
-  "version": "0.2.6",
+  "version": "0.2.7",
   "description": "Parse and output text from supported file types",
   "main": "index.js",
   "bin": {
