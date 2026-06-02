@@ -1,0 +1,17 @@
+{
+  "name": "@tq303/dedox",
+  "version": "0.2.6",
+  "description": "Parse and output text from supported file types",
+  "main": "index.js",
+  "bin": {
+    "ddx": "index.js"
+  },
+  "scripts": {
+    "postinstall": "node postinstall.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tq303/dedox"
+  },
+  "license": "MIT"
+}
